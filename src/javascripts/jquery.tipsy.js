@@ -17,12 +17,12 @@
       return false;
     }
     
-    function jQueryDelegateEventMethod() {
+    function bindDelegateEvent(event, selector, handler, context) {
       var majorVersionNumber = parseFloat($().jquery);
       if (majorVersionNumber >= 1.7) {
-        return 'on';
+        context.on(event, selector, handler);
       } else {
-        return 'live';
+        context.live(event, handler);
       }
     }
     
@@ -184,10 +184,15 @@
         if (!options.live) this.each(function() { get(this); });
         
         if (options.trigger != 'manual') {
-            var binder   = options.live ? jQueryDelegateEventMethod() : 'bind',
-                eventIn  = options.trigger == 'hover' ? 'mouseenter' : 'focus',
+            var eventIn  = options.trigger == 'hover' ? 'mouseenter' : 'focus',
                 eventOut = options.trigger == 'hover' ? 'mouseleave' : 'blur';
-            this[binder](eventIn, enter)[binder](eventOut, leave);
+            if (options.live) {
+              var selector = options.selector || '[title]';
+              bindDelegateEvent(eventIn, selector, enter, this);
+              bindDelegateEvent(eventOut, selector, leave, this);
+            } else {
+              this.bind(eventIn, enter).bind(eventOut, leave);
+            }
         }
         
         return this;
